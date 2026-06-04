@@ -49,7 +49,7 @@ interface MapCardProps {
 
 export function MapCard({ mode, index, onCountdownExpire }: MapCardProps) {
   const style = MODE_STYLES[mode.mode] || MODE_STYLES.pubs;
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   // ===== 预测性轮换 =====
   // displayMode: 实际展示的地图数据（可能是本地预测，也可能是服务端数据）
@@ -109,7 +109,9 @@ export function MapCard({ mode, index, onCountdownExpire }: MapCardProps) {
           alt={current.nameZh}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           onError={(e: SyntheticEvent<HTMLImageElement>) => {
-            (e.target as HTMLImageElement).src = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" fill="#12121a"><rect width="400" height="200"/><text x="200" y="95" text-anchor="middle" fill="#555" font-size="16">${current.nameZh}</text><text x="200" y="120" text-anchor="middle" fill="#444" font-size="12">${current.name}</text></svg>`)}`;
+            const displayName = locale === 'en' ? current.name : current.nameZh;
+            const subName = locale === 'en' ? current.nameZh : current.name;
+            (e.target as HTMLImageElement).src = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" fill="#12121a"><rect width="400" height="200"/><text x="200" y="95" text-anchor="middle" fill="#555" font-size="16">${displayName}</text><text x="200" y="120" text-anchor="middle" fill="#444" font-size="12">${subName}</text></svg>`)}`;
           }}
         />
         <div className="absolute inset-0 map-overlay" />
@@ -121,9 +123,12 @@ export function MapCard({ mode, index, onCountdownExpire }: MapCardProps) {
         {/* 当前地图名称 */}
         <div className="mb-3">
           <h3 className={`font-display text-2xl sm:text-3xl font-bold ${style.text}`}>
-            {current.nameZh !== current.name ? current.nameZh : current.name}
+            {locale === 'en' ? current.name : current.nameZh}
           </h3>
-          {current.nameZh !== current.name && (
+          {locale === 'en' && current.nameZh !== current.name && (
+            <p className="text-sm font-body mt-0.5" style={{ color: 'var(--text-muted)' }}>{current.nameZh}</p>
+          )}
+          {locale === 'zh' && current.nameZh !== current.name && (
             <p className="text-sm font-body mt-0.5" style={{ color: 'var(--text-muted)' }}>{current.name}</p>
           )}
         </div>
@@ -174,9 +179,9 @@ export function MapCard({ mode, index, onCountdownExpire }: MapCardProps) {
                   />
                   <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ backgroundColor: 'var(--next-map-overlay)' }}>
                     <span className="text-[10px] font-bold leading-tight text-center px-1" style={{ color: 'var(--text-primary)' }}>
-                      {map.nameZh !== map.name ? map.nameZh : map.name}
+                      {locale === 'en' ? map.name : map.nameZh}
                     </span>
-                    <span className="text-[9px] font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                    <span className="text-[9px] font-mono mt-0.5" style={{ color: 'var(--text-secondary)' }}>
                       {formatTime(map.startTime + TIME_OFFSET)}
                     </span>
                   </div>
