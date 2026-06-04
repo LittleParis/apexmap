@@ -1,6 +1,8 @@
+import { useState, useCallback, useRef } from 'react';
 import type { SyntheticEvent } from 'react';
 import { motion } from 'framer-motion';
 import { CountdownTimer } from './CountdownTimer';
+import { useI18n } from '../hooks/useI18n';
 import type { MapMode } from '../types';
 
 const MODE_STYLES: Record<string, { border: string; text: string; label: string; badge: string }> = {
@@ -42,17 +44,47 @@ function toProxyUrl(url: string): string {
 interface MapCardProps {
   mode: MapMode;
   index: number;
+  onCountdownExpire?: () => void;
 }
 
-export function MapCard({ mode, index }: MapCardProps) {
+export function MapCard({ mode, index, onCountdownExpire }: MapCardProps) {
   const style = MODE_STYLES[mode.mode] || MODE_STYLES.pubs;
-  const { current, next } = mode;
+  const { t } = useI18n();
+
+  // ===== 预测性轮换 =====
+  // displayMode: 实际展示的地图数据（可能是本地预测，也可能是服务端数据）
+  const [displayMode, setDisplayMode] = useState(mode);
+  // 记录上一次同步的 endTime，用于检测服务端是否返回了真正的新轮换数据
+  const lastSyncedEndRef = useRef(mode.current.endTime);
+
+  // 服务端数据同步：仅当 endTime 变化时同步
+  // - 预测后：服务端返回旧数据（endTime 不变）→ 不同步，保留预测 ✓
+  //           服务端返回新轮换数据（endTime 变化）→ 同步，用服务端权威数据 ✓
+  // - 未预测：endTime 不变 → 不同步（无需刷新）
+  //           endTime 变化 → 同步（正常数据更新）
+  if (mode.current.endTime !== lastSyncedEndRef.current) {
+    lastSyncedEndRef.current = mode.current.endTime;
+    setDisplayMode(mode);
+  }
+
+  const { current, next } = displayMode;
 
   // 应用时间偏移
   const adjustedStart = current.startTime + TIME_OFFSET;
   const adjustedEnd = current.endTime + TIME_OFFSET;
 
   const nextMaps = next.slice(0, 3);
+
+  // 倒计时归零 → 将 next[0] 提升为当前地图（预测性轮换）
+  const handleExpire = useCallback(() => {
+    setDisplayMode(prev => {
+      if (prev.next.length === 0) return prev;
+      const [nextMap, ...rest] = prev.next;
+      return { ...prev, current: nextMap, next: rest };
+    });
+    // 触发爆发式轮询，快速从服务端确认实际轮换数据
+    onCountdownExpire?.();
+  }, [onCountdownExpire]);
 
   return (
     <motion.div
@@ -86,7 +118,7 @@ export function MapCard({ mode, index }: MapCardProps) {
 
       {/* 信息区域 */}
       <div className="relative z-10 px-5 pb-5 -mt-6">
-        {/* 当前地图名 */}
+        {/* 当前地图名称 */}
         <div className="mb-3">
           <h3 className={`font-display text-2xl sm:text-3xl font-bold ${style.text}`}>
             {current.nameZh !== current.name ? current.nameZh : current.name}
@@ -100,7 +132,7 @@ export function MapCard({ mode, index }: MapCardProps) {
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-xs uppercase tracking-wider font-display" style={{ color: 'var(--text-muted)' }}>
-              持续时间
+              {t('card.duration')}
             </span>
             <span className="font-mono text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
               {formatTime(adjustedStart)} — {formatTime(adjustedEnd)}
@@ -109,6 +141,7 @@ export function MapCard({ mode, index }: MapCardProps) {
           <CountdownTimer
             endTime={adjustedEnd}
             colorClass={style.text}
+            onExpire={handleExpire}
           />
         </div>
 
@@ -119,7 +152,7 @@ export function MapCard({ mode, index }: MapCardProps) {
         {nextMaps.length > 0 && (
           <div>
             <div className="text-xs mb-2 uppercase tracking-wider font-display" style={{ color: 'var(--text-muted)' }}>
-              接下来的地图
+              {t('card.next')}
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1">
               {nextMaps.map((map, i) => (
@@ -128,7 +161,8 @@ export function MapCard({ mode, index }: MapCardProps) {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.3 + i * 0.1 }}
-                  className="flex-shrink-0 relative rounded-lg overflow-hidden w-28 h-16 group/next"
+                  className="flex-shrink-0 relative rounded-lg overflow-hidden w-28 h-16 group/next shadow-sm"
+                  style={{ border: '1px solid var(--next-map-border)' }}
                 >
                   <img
                     src={toProxyUrl(map.image)}

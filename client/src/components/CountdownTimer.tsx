@@ -5,10 +5,11 @@ interface CountdownTimerProps {
   endTime: number;
   colorClass: string;
   onExpire?: () => void;
+  expiredFallback?: React.ReactNode;
 }
 
-export function CountdownTimer({ endTime, colorClass, onExpire }: CountdownTimerProps) {
-  const { hours, minutes, seconds, isExpired, isUrgent } = useCountdown(endTime);
+export function CountdownTimer({ endTime, colorClass, onExpire, expiredFallback }: CountdownTimerProps) {
+  const { hours, minutes, seconds, isExpired, isUrgent } = useCountdown(endTime, { onExpire });
   const [prevSeconds, setPrevSeconds] = useState(seconds);
   const [flip, setFlip] = useState(false);
 
@@ -21,16 +22,10 @@ export function CountdownTimer({ endTime, colorClass, onExpire }: CountdownTimer
     }
   }, [seconds, prevSeconds]);
 
-  useEffect(() => {
-    if (isExpired && onExpire) {
-      onExpire();
-    }
-  }, [isExpired, onExpire]);
-
   const pad = (n: number) => String(n).padStart(2, '0');
 
   if (isExpired) {
-    return (
+    return expiredFallback ?? (
       <div className="font-mono text-2xl font-bold neon-text-red animate-pulse">
         轮换中...
       </div>

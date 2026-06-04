@@ -6,7 +6,7 @@ export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
     // 读取记忆中的主题偏好
     const saved = document.documentElement.getAttribute('data-theme');
-    return (saved === 'light' ? 'light' : 'dark') as Theme;
+    return (saved === 'dark' ? 'dark' : 'light') as Theme;
   });
 
   useEffect(() => {

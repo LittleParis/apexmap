@@ -29,6 +29,7 @@
 
   --next-map-overlay: rgba(0, 0, 0, 0.6);
   --next-map-bg: #1a1a28;
+  --next-map-border: transparent;
 
   --particle-opacity: 0.4;
   --neon-intensity: 1;
@@ -57,8 +58,9 @@
   --scrollbar-track: #f0f2f5;
   --scrollbar-thumb: #ccc;
 
-  --next-map-overlay: rgba(255, 255, 255, 0.7);
+  --next-map-overlay: rgba(255, 255, 255, 0.45);
   --next-map-bg: #e8e8f0;
+  --next-map-border: rgba(0, 0, 0, 0.08);
 
   --particle-opacity: 0.15;
   --neon-intensity: 0.7;
@@ -210,9 +212,9 @@ body {
 [data-theme="light"] .map-overlay {
   background: linear-gradient(
     to top,
-    rgba(255,255,255,0.97) 0%,
-    rgba(255,255,255,0.7) 40%,
-    rgba(255,255,255,0.2) 70%,
+    rgba(255,255,255,0.92) 0%,
+    rgba(255,255,255,0.5) 40%,
+    rgba(255,255,255,0.1) 70%,
     transparent 100%
   );
 }

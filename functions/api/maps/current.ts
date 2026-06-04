@@ -26,12 +26,12 @@ const MAP_ZH: Record<string, string> = {
   'Thunder Watch': '雷霆穹顶',
   'Skull Town': '骷髅镇',
   'Skulltown': '骷髅镇',
-  'Estate': '纪念碑',
-  'Estates': '纪念碑',
+  'Estate': '不动产',
+  'Estates': '不动产',
   'Fragment': '碎片',
   'Lava Siphon': '熔岩虹吸',
   'Party Crasher': '派对破坏者',
-  'Monument': '纪念碑',
+  'Monument': '不动产',
   'Encore': '再来一局',
   'Overflow': '溢出',
   'Barometer': '气压计',
@@ -49,7 +49,7 @@ const MAP_ZH: Record<string, string> = {
 
 const SUB_MODE_ZH: Record<string, string> = {
   'TDM': '团队死斗',
-  'Gun Run': '枪战',
+  'Gun Run': '子弹时间',
   'Control': '控制',
 };
 
@@ -80,7 +80,7 @@ function parseTimeRange(text: string): { from: number; to: number } | null {
 // 内存缓存（Pages Functions 在边缘节点保持实例期间有效）
 let cachedData: any = null;
 let cachedAt = 0;
-const CACHE_TTL = 30_000; // 30 秒
+const CACHE_TTL = 5_000; // 5 秒（配合前端爆发轮询，缩短轮换切换延迟）
 
 async function fetchMapRotation() {
   const now = Date.now();
