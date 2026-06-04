@@ -7,8 +7,8 @@
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
     "build": "cd client && npm install && npm run build",
-    "install:all": "cd server && npm install && cd ../client && npm install",
-    "deploy": "vercel --prod"
+    "deploy": "npx wrangler deploy",
+    "deploy:cf": "npm run build && npx wrangler deploy"
   },
   "dependencies": {
     "@vercel/node": "^5.1.0",
@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.0",
-    "vercel": "^54.6.1"
+    "vercel": "^54.6.1",
+    "wrangler": "^4.97.0"
   }
 }
