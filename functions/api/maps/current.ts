@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { PagesFunction } from '@cloudflare/workers-types';
 import * as cheerio from 'cheerio';
 
 const SOURCE_URL = 'https://apexlegendsstatus.com/current-map';
@@ -77,7 +77,7 @@ function parseTimeRange(text: string): { from: number; to: number } | null {
   return { from: parseInt(matches[0][1]), to: parseInt(matches[1][1]) };
 }
 
-// 简单缓存
+// 内存缓存（Pages Functions 在边缘节点保持实例期间有效）
 let cachedData: any = null;
 let cachedAt = 0;
 const CACHE_TTL = 30_000; // 30 秒
@@ -103,7 +103,10 @@ async function fetchMapRotation() {
 
   for (const config of MODE_CONFIG) {
     const card = $(`.curmap-overview-card .container.${config.containerClass}`).closest('.curmap-overview-card');
-    if (card.length === 0) continue;
+    if (card.length === 0) {
+      console.warn(`[Scraper] Container not found for mode: ${config.mode}`);
+      continue;
+    }
 
     const container = card.find(`.${config.containerClass}`);
     const currentMapName = container.find('h2').first().text().trim();
@@ -149,15 +152,21 @@ async function fetchMapRotation() {
   return result;
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
+export const onRequest: PagesFunction = async (context) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET',
+    'Content-Type': 'application/json',
+  };
 
   try {
     const data = await fetchMapRotation();
-    res.status(200).json(data);
+    return new Response(JSON.stringify(data), { status: 200, headers });
   } catch (error: any) {
     console.error('[API Error]', error);
-    res.status(500).json({ error: '服务器错误', message: error.message });
+    return new Response(
+      JSON.stringify({ error: '服务器错误', message: error.message }),
+      { status: 500, headers }
+    );
   }
-}
+};

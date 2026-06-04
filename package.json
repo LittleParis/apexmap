@@ -7,16 +7,14 @@
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
     "build": "cd client && npm install && npm run build",
-    "deploy": "npx wrangler deploy",
-    "deploy:cf": "npm run build && npx wrangler deploy"
+    "deploy:cf": "npm run build && npx wrangler pages deploy client/dist"
   },
   "dependencies": {
-    "@vercel/node": "^5.1.0",
     "cheerio": "^1.0.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240512.0",
     "concurrently": "^9.1.0",
-    "vercel": "^54.6.1",
     "wrangler": "^4.97.0"
   }
 }
