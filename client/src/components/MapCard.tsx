@@ -33,6 +33,12 @@ const MODE_STYLES: Record<string, { border: string; text: string; label: string;
 // 时间偏移量（秒）：上游数据比实际北京时间慢 2 小时
 const TIME_OFFSET = 2 * 60 * 60;
 
+// 将上游图片 URL 转换为本地代理路径（通过 Cloudflare 边缘缓存加速）
+function toProxyUrl(url: string): string {
+  const filename = url.split('/').pop();
+  return filename ? `/api/image/${filename}` : url;
+}
+
 interface MapCardProps {
   mode: MapMode;
   index: number;
@@ -67,7 +73,7 @@ export function MapCard({ mode, index }: MapCardProps) {
       {/* 地图图片背景 */}
       <div className="relative h-44 sm:h-52 overflow-hidden">
         <img
-          src={current.image}
+          src={toProxyUrl(current.image)}
           alt={current.nameZh}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           onError={(e: SyntheticEvent<HTMLImageElement>) => {
@@ -125,7 +131,7 @@ export function MapCard({ mode, index }: MapCardProps) {
                   className="flex-shrink-0 relative rounded-lg overflow-hidden w-28 h-16 group/next"
                 >
                   <img
-                    src={map.image}
+                    src={toProxyUrl(map.image)}
                     alt={map.nameZh}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover/next:scale-110"
                     onError={(e: SyntheticEvent<HTMLImageElement>) => {
