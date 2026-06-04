@@ -1,3 +1,4 @@
+import type { SyntheticEvent } from 'react';
 import { motion } from 'framer-motion';
 import { CountdownTimer } from './CountdownTimer';
 import type { MapMode } from '../types';
@@ -69,7 +70,7 @@ export function MapCard({ mode, index }: MapCardProps) {
           src={current.image}
           alt={current.nameZh}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          onError={(e) => {
+          onError={(e: SyntheticEvent<HTMLImageElement>) => {
             (e.target as HTMLImageElement).src = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" fill="#12121a"><rect width="400" height="200"/><text x="200" y="95" text-anchor="middle" fill="#555" font-size="16">${current.nameZh}</text><text x="200" y="120" text-anchor="middle" fill="#444" font-size="12">${current.name}</text></svg>`)}`;
           }}
         />
@@ -127,7 +128,7 @@ export function MapCard({ mode, index }: MapCardProps) {
                     src={map.image}
                     alt={map.nameZh}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover/next:scale-110"
-                    onError={(e) => {
+                    onError={(e: SyntheticEvent<HTMLImageElement>) => {
                       (e.target as HTMLImageElement).style.background = 'var(--bg-card-hover)';
                     }}
                   />
