@@ -1,0 +1,250 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== 主题变量 ===== */
+:root,
+[data-theme="dark"] {
+  --bg-primary: #0a0a0f;
+  --bg-card: #12121a;
+  --bg-card-hover: #1a1a28;
+  --bg-overlay: rgba(10, 10, 15, 0.95);
+  --bg-overlay-light: rgba(10, 10, 15, 0.7);
+
+  --text-primary: #e8e8f0;
+  --text-secondary: #8888a0;
+  --text-muted: #555570;
+
+  --border-subtle: rgba(69, 69, 69, 0.84);
+  --border-card: rgba(69, 69, 69, 0.4);
+
+  --scanline-color: rgba(0, 240, 255, 0.015);
+  --grid-color: rgba(0, 240, 255, 0.03);
+
+  --skeleton-from: #12121a;
+  --skeleton-via: #1a1a28;
+
+  --scrollbar-track: #0a0a0f;
+  --scrollbar-thumb: #333;
+
+  --next-map-overlay: rgba(0, 0, 0, 0.6);
+  --next-map-bg: #1a1a28;
+
+  --particle-opacity: 0.4;
+  --neon-intensity: 1;
+}
+
+[data-theme="light"] {
+  --bg-primary: #f0f2f5;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8f9fb;
+  --bg-overlay: rgba(255, 255, 255, 0.95);
+  --bg-overlay-light: rgba(255, 255, 255, 0.6);
+
+  --text-primary: #1a1a2e;
+  --text-secondary: #555570;
+  --text-muted: #999ab0;
+
+  --border-subtle: rgba(200, 200, 220, 0.6);
+  --border-card: rgba(200, 200, 220, 0.4);
+
+  --scanline-color: rgba(0, 0, 0, 0.02);
+  --grid-color: rgba(0, 0, 0, 0.04);
+
+  --skeleton-from: #e8e8f0;
+  --skeleton-via: #f0f2f5;
+
+  --scrollbar-track: #f0f2f5;
+  --scrollbar-thumb: #ccc;
+
+  --next-map-overlay: rgba(255, 255, 255, 0.7);
+  --next-map-bg: #e8e8f0;
+
+  --particle-opacity: 0.15;
+  --neon-intensity: 0.7;
+}
+
+/* ===== 全局基础样式 ===== */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.4s ease, color 0.3s ease;
+}
+
+/* ===== 赛博朋克霓虹特效 ===== */
+
+/* 霓虹边框 - 暗色主题 */
+.neon-border-cyan {
+  border: 1px solid #00f0ff;
+  box-shadow:
+    0 0 5px #00f0ff,
+    0 0 20px rgba(0, 240, 255, 0.3),
+    inset 0 0 20px rgba(0, 240, 255, 0.05);
+}
+
+.neon-border-magenta {
+  border: 1px solid #ff00e5;
+  box-shadow:
+    0 0 5px #ff00e5,
+    0 0 20px rgba(255, 0, 229, 0.3),
+    inset 0 0 20px rgba(255, 0, 229, 0.05);
+}
+
+.neon-border-yellow {
+  border: 1px solid #f0ff00;
+  box-shadow:
+    0 0 5px #f0ff00,
+    0 0 20px rgba(240, 255, 0, 0.3),
+    inset 0 0 20px rgba(240, 255, 0, 0.05);
+}
+
+.neon-border-orange {
+  border: 1px solid #ff6a00;
+  box-shadow:
+    0 0 5px #ff6a00,
+    0 0 20px rgba(255, 106, 0, 0.3),
+    inset 0 0 20px rgba(255, 106, 0, 0.05);
+}
+
+.neon-border-red {
+  border: 1px solid #ff003c;
+  box-shadow:
+    0 0 5px #ff003c,
+    0 0 20px rgba(255, 0, 60, 0.3),
+    inset 0 0 20px rgba(255, 0, 60, 0.05);
+}
+
+/* 浅色主题霓虹边框 - 降低发光强度 */
+[data-theme="light"] .neon-border-cyan {
+  border-color: #0891b2;
+  box-shadow: 0 0 3px rgba(8, 145, 178, 0.3), 0 1px 3px rgba(0,0,0,0.08);
+}
+[data-theme="light"] .neon-border-magenta {
+  border-color: #c026d3;
+  box-shadow: 0 0 3px rgba(192, 38, 211, 0.3), 0 1px 3px rgba(0,0,0,0.08);
+}
+[data-theme="light"] .neon-border-yellow {
+  border-color: #ca8a04;
+  box-shadow: 0 0 3px rgba(202, 138, 4, 0.3), 0 1px 3px rgba(0,0,0,0.08);
+}
+[data-theme="light"] .neon-border-orange {
+  border-color: #ea580c;
+  box-shadow: 0 0 3px rgba(234, 88, 12, 0.3), 0 1px 3px rgba(0,0,0,0.08);
+}
+[data-theme="light"] .neon-border-red {
+  border-color: #dc2626;
+  box-shadow: 0 0 3px rgba(220, 38, 38, 0.3), 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* 霓虹文字 */
+.neon-text-cyan {
+  color: #00f0ff;
+  text-shadow: 0 0 7px #00f0ff, 0 0 20px rgba(0, 240, 255, 0.5);
+}
+.neon-text-magenta {
+  color: #ff00e5;
+  text-shadow: 0 0 7px #ff00e5, 0 0 20px rgba(255, 0, 229, 0.5);
+}
+.neon-text-yellow {
+  color: #f0ff00;
+  text-shadow: 0 0 7px #f0ff00, 0 0 20px rgba(240, 255, 0, 0.5);
+}
+.neon-text-orange {
+  color: #ff6a00;
+  text-shadow: 0 0 7px #ff6a00, 0 0 20px rgba(255, 106, 0, 0.5);
+}
+.neon-text-red {
+  color: #ff003c;
+  text-shadow: 0 0 7px #ff003c, 0 0 20px rgba(255, 0, 60, 0.5);
+}
+
+/* 浅色主题霓虹文字 - 加深颜色保证可读性 */
+[data-theme="light"] .neon-text-cyan    { color: #0891b2; text-shadow: none; }
+[data-theme="light"] .neon-text-magenta { color: #c026d3; text-shadow: none; }
+[data-theme="light"] .neon-text-yellow  { color: #a16207; text-shadow: none; }
+[data-theme="light"] .neon-text-orange  { color: #ea580c; text-shadow: none; }
+[data-theme="light"] .neon-text-red     { color: #dc2626; text-shadow: none; }
+
+/* 脉冲动画 */
+@keyframes neonPulse {
+  0%, 100% {
+    box-shadow: 0 0 5px currentColor, 0 0 20px currentColor, inset 0 0 20px rgba(255,255,255,0.05);
+  }
+  50% {
+    box-shadow: 0 0 10px currentColor, 0 0 40px currentColor, inset 0 0 30px rgba(255,255,255,0.1);
+  }
+}
+
+/* 紧急闪烁 */
+@keyframes urgentPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.urgent-animation {
+  animation: urgentPulse 0.8s ease-in-out infinite;
+}
+
+/* 扫描线效果 */
+.scanline::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    var(--scanline-color) 2px, var(--scanline-color) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 渐变遮罩 - 使用 CSS 变量 */
+.map-overlay {
+  background: linear-gradient(
+    to top,
+    var(--bg-overlay) 0%,
+    var(--bg-overlay-light) 40%,
+    rgba(10, 10, 15, 0.2) 70%,
+    rgba(10, 10, 15, 0.05) 100%
+  );
+}
+[data-theme="light"] .map-overlay {
+  background: linear-gradient(
+    to top,
+    rgba(255,255,255,0.97) 0%,
+    rgba(255,255,255,0.7) 40%,
+    rgba(255,255,255,0.2) 70%,
+    transparent 100%
+  );
+}
+
+/* 加载骨架屏 */
+.skeleton-pulse {
+  background: linear-gradient(90deg, var(--skeleton-from) 25%, var(--skeleton-via) 50%, var(--skeleton-from) 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s ease-in-out infinite;
+}
+@keyframes skeletonLoading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #00f0ff; }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #0891b2; }
+
+/* 网格背景 */
+.cyber-grid {
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* 主题过渡效果 */
+.theme-transition,
+.theme-transition * {
+  transition: background-color 0.4s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
