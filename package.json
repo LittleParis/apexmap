@@ -7,7 +7,9 @@
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
     "build": "cd client && npm install && npm run build",
-    "deploy:cf": "npm run build && npx wrangler pages deploy client/dist"
+    "deploy:cf": "npm run build && npx wrangler pages deploy client/dist",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "dependencies": {
     "cheerio": "^1.0.0"
