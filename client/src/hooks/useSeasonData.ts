@@ -13,7 +13,8 @@ interface SeasonInfo {
 // 中文名映射（远程 API 只返回英文名）
 const SEASON_NAME_ZH: Record<number, string> = {
   29: '超频',
-  // 新赛季时在此添加，例如 30: 'XXX'
+  30: '标记',
+  // 新赛季时在此添加，例如 31: 'XXX'
 };
 
 /**
@@ -75,8 +76,10 @@ export function useSeasonData(): { season: SeasonInfo; loading: boolean } {
 
           // 远程赛季编号 > 本地 → 新赛季已开始
           // countdownTs 是新赛季的 startDate（= 旧赛季的 endDate）
-          const newSeasonEnd = prev.endDate; // 旧赛季预估的 endDate 作为新赛季的初始 endDate
           const newSeasonStart = new Date(countdownTs * 1000);
+          // 预估新赛季 endDate：沿用约 91 天的赛季时长（官方未公布确切结束日期前）
+          const ESTIMATED_SEASON_MS = 91 * 86_400_000;
+          const newSeasonEnd = new Date(newSeasonStart.getTime() + ESTIMATED_SEASON_MS);
 
           return {
             number: remoteNum,

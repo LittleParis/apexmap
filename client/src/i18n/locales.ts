@@ -70,7 +70,7 @@ export const LOCALES: Record<Locale, Record<string, string>> = {
     'season.remaining': 'Remaining',
     'season.days': 'd',
     'season.hours': 'h',
-    'season.name': 'Overclocked',
+    'season.name': 'Marked',
 
     // Map Card
     'card.duration': 'Duration',

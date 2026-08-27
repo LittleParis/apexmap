@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import mapsRouter from './routes/maps.js';
+import { getSeasonInfo } from './services/season.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -23,15 +24,14 @@ app.get('/api/health', (_req, res) => {
 });
 
 // 赛季信息（本地开发用，返回与 Cloudflare Function 相同格式）
-app.get('/api/season', (_req, res) => {
-  // S29 超频 / Overclocked
-  // countdownTs = 倒计时目标时间戳（赛季开始前是 startDate，赛季进行中是下赛季 startDate）
-  res.json({
-    number: 29,
-    nameEn: 'Overclocked',
-    countdownTs: 1778000400, // S29 start: 2026-05-06T00:00:00+08:00
-    lastUpdated: new Date().toISOString(),
-  });
+// 优先级：EA 官方帮助页 → apexlegendsstatus → 本地硬编码
+app.get('/api/season', async (_req, res) => {
+  try {
+    const data = await getSeasonInfo();
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: '赛季数据获取失败', message: (e as Error).message });
+  }
 });
 
 app.listen(PORT, () => {

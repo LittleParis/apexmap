@@ -1,10 +1,17 @@
-import type { PagesFunction } from '@cloudflare/workers-types';
+/**
+ * 赛季信息服务（本地开发）
+ *
+ * 数据源优先级：
+ * 1. EA 官方帮助页（权威：赛季名 + 开始日期 + 赛季号）
+ * 2. apexlegendsstatus.com（第三方兜底）
+ * 3. 本地硬编码兜底（官方/第三方均不可用时）
+ *
+ * 注意：官方不公布当前赛季结束日期，结束日期由前端基于开始日期 + ~91 天预估。
+ */
+
 import * as cheerio from 'cheerio';
 
-// ---- 数据源 ----
-// 主数据源：EA 官方帮助页（权威：赛季名 + 开始日期 + 赛季号）
 const EA_PAGE_URL = 'https://help.ea.com/en/articles/apex-legends/seasons-and-updates/';
-// 降级数据源：apexlegendsstatus.com（第三方，赛季中段 startTime 指向 split 2，仅作兜底）
 const STATUS_URL = 'https://apexlegendsstatus.com/new-season-countdown';
 
 const UA =
@@ -14,11 +21,6 @@ const MONTHS: Record<string, number> = {
   january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
   july: 6, august: 7, september: 8, october: 9, november: 10, december: 11,
 };
-
-// 内存缓存（赛季数据变化频率极低，缓存 1 小时）
-let cachedSeason: any = null;
-let cachedSeasonAt = 0;
-const SEASON_CACHE_TTL = 3_600_000; // 1 小时
 
 export interface SeasonApiResponse {
   number: number;
@@ -39,30 +41,22 @@ async function fetchHtml(url: string, acceptLang: string): Promise<string> {
   return response.text();
 }
 
-/**
- * 主数据源：解析 EA 官方帮助页
- * 结构（help.ea.com/en/articles/apex-legends/seasons-and-updates/）：
- * - h2 "What's new in Apex Legends: Marked?" → 赛季英文名
- * - 正文 "Marked, the newest Season of Apex Legends, launches on August 4, 2026." → 开始日期
- * - h3 历史列表 "Overclocked (Season 29)" → 当前赛季号 = 历史最大 + 1
- */
+/** 主数据源：EA 官方帮助页 */
 async function fetchFromOfficial(): Promise<SeasonApiResponse> {
   const html = await fetchHtml(EA_PAGE_URL, 'en-US,en;q=0.9');
   const $ = cheerio.load(html);
 
-  // 1. 赛季英文名
   let nameEn = '';
   $('h2').each((_, el) => {
     const t = $(el).text().trim().replace(/\s+/g, ' ');
-    // 注意：页面使用 Unicode 弯引号 ’ (U+2019)，需兼容
+    // 页面使用 Unicode 弯引号 ’ (U+2019)，需兼容
     const m = t.match(/What[’']?s new in Apex Legends:\s*(.+?)\s*\??$/i);
     if (m) {
       nameEn = m[1].trim();
-      return false; // 找到即停止
+      return false;
     }
   });
 
-  // 2. 开始日期（构造为 Apex 赛季惯例上线时刻 17:00 UTC）
   let startTs = 0;
   $('span,p').each((_, el) => {
     const t = $(el).text().trim().replace(/\s+/g, ' ');
@@ -81,43 +75,30 @@ async function fetchFromOfficial(): Promise<SeasonApiResponse> {
     }
   });
 
-  // 3. 赛季号：历史列表最大号 + 1
   let maxSeason = 0;
   $('h3').each((_, el) => {
     const t = $(el).text().trim();
     const m = t.match(/\(Season\s*(\d+)\)/i);
     if (m) maxSeason = Math.max(maxSeason, parseInt(m[1], 10));
   });
-  // 保险：若最新赛季名已出现在历史列表（官方页滞后场景），直接用其编号
   const number = maxSeason + 1;
 
   if (!nameEn || !startTs) {
     throw new Error('Failed to parse season data from EA official page');
   }
 
-  return {
-    number,
-    nameEn,
-    countdownTs: startTs,
-    lastUpdated: new Date().toISOString(),
-  };
+  return { number, nameEn, countdownTs: startTs, lastUpdated: new Date().toISOString() };
 }
 
-/**
- * 降级数据源：解析 apexlegendsstatus.com 倒计时页
- * 注意：赛季进行中该页 startTime 指向 split 2 开始时间，非赛季边界，仅作兜底。
- */
+/** 降级数据源：apexlegendsstatus.com */
 async function fetchFromStatus(): Promise<SeasonApiResponse> {
   const html = await fetchHtml(STATUS_URL, 'en-US,en;q=0.9');
   const $ = cheerio.load(html);
 
-  // 赛季编号：<title> "Season 30 countdown"
   const titleText = $('title').first().text().trim();
   const numMatch = titleText.match(/Season\s+(\d+)/i);
   const seasonNumber = numMatch ? parseInt(numMatch[1], 10) : 0;
 
-  // 赛季英文名：优先 og:title（"Countdown to Season 30: Marked, split 2"），
-  // 其次查找包含 "Season" 的 h1（页面第一个 h1 是站点 logo，需跳过）
   let nameEn = '';
   const ogTitle = $('meta[property="og:title"]').attr('content') || '';
   if (ogTitle) {
@@ -134,10 +115,8 @@ async function fetchFromStatus(): Promise<SeasonApiResponse> {
       }
     });
   }
-  // 清理分赛段后缀，如 "Marked, split 2" → "Marked"
   nameEn = nameEn.replace(/,\s*split\s*\d+$/i, '').trim();
 
-  // 倒计时目标时间戳
   const scriptContent = $('script').map((_, el) => $(el).html() || '').get().join('\n');
   const tsMatch = scriptContent.match(/let\s+startTime\s*=\s*(\d+)/);
   const countdownTs = tsMatch ? parseInt(tsMatch[1], 10) : 0;
@@ -146,56 +125,30 @@ async function fetchFromStatus(): Promise<SeasonApiResponse> {
     throw new Error('Failed to parse season data from status site');
   }
 
+  return { number: seasonNumber, nameEn, countdownTs, lastUpdated: new Date().toISOString() };
+}
+
+/** 最终兜底：本地硬编码（官方/第三方都失败时） */
+function fetchFromLocal(): SeasonApiResponse {
   return {
-    number: seasonNumber,
-    nameEn,
-    countdownTs,
+    number: 30,
+    nameEn: 'Marked',
+    countdownTs: 1785862800, // S30 start: 2026-08-04T17:00:00Z
     lastUpdated: new Date().toISOString(),
   };
 }
 
-async function fetchSeasonInfo(): Promise<SeasonApiResponse> {
-  const now = Date.now();
-  if (cachedSeason && now - cachedSeasonAt < SEASON_CACHE_TTL) {
-    return cachedSeason;
-  }
-
-  // 主：官方 → 降级：第三方 → 都失败则抛错（前端回退本地配置）
-  let result: SeasonApiResponse | null = null;
+/** 获取赛季信息：官方 → 第三方 → 本地硬编码 */
+export async function getSeasonInfo(): Promise<SeasonApiResponse> {
   try {
-    result = await fetchFromOfficial();
-  } catch (error: any) {
-    console.warn('[Season] Official source failed, falling back to status site:', error?.message);
+    return await fetchFromOfficial();
+  } catch (e) {
+    console.warn('[Season] Official source failed, falling back:', (e as Error).message);
   }
-  if (!result) {
-    try {
-      result = await fetchFromStatus();
-    } catch (error: any) {
-      console.warn('[Season] Status site also failed:', error?.message);
-    }
+  try {
+    return await fetchFromStatus();
+  } catch (e) {
+    console.warn('[Season] Status site failed, using local fallback:', (e as Error).message);
   }
-  if (!result) throw new Error('All season data sources failed');
-
-  cachedSeason = result;
-  cachedSeasonAt = now;
-  return result;
+  return fetchFromLocal();
 }
-
-export const onRequest: PagesFunction = async () => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET',
-    'Content-Type': 'application/json',
-  };
-
-  try {
-    const data = await fetchSeasonInfo();
-    return new Response(JSON.stringify(data), { status: 200, headers });
-  } catch (error: any) {
-    console.error('[Season API Error]', error);
-    return new Response(
-      JSON.stringify({ error: '赛季数据获取失败', message: error.message }),
-      { status: 500, headers }
-    );
-  }
-};
